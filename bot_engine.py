@@ -30,7 +30,8 @@ def start(message):
 
 
 def get_weather_location(message):
-    global location
+    global forecast, location
+    forecast, location = None, None
     location = message.text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton('Да')
