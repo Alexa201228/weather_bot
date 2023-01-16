@@ -32,7 +32,7 @@ class WeatherParser:
         options.add_argument("enable-automation")
 
         self._browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()),
-                                         chrome_options=options)
+                                         options=options)
 
     def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda'
