@@ -48,7 +48,7 @@ class WeatherParser:
         result = {}
         self._browser.get(self._url)
         self._browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-        time.sleep(1)
+        time.sleep(2)
         forecast = self._browser.page_source
         soup = BeautifulSoup(forecast, 'lxml')
         five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:5]
