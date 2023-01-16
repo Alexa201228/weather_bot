@@ -23,6 +23,8 @@ def start(message):
     Bot initialization
     :param message:
     """
+    global forecast, location
+    forecast, location = None, None
     bot.send_message(message.from_user.id, '👋 Привет! Я бот прогноза погоды. ')
     bot.send_message(message.from_user.id,
                      'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
@@ -30,8 +32,7 @@ def start(message):
 
 
 def get_weather_location(message):
-    global forecast, location
-    forecast, location = None, None
+
     location = message.text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton('Да')
