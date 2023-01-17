@@ -25,7 +25,6 @@ EMOJI_WEATHER_DICT = {
 class WeatherParser:
 
     def __init__(self) -> None:
-        self._url = None
         options = Options()
         options.add_argument("--no-sandbox")
         options.add_argument("--headless")
@@ -40,13 +39,13 @@ class WeatherParser:
         search = self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input')
         search.send_keys(location + Keys.RETURN)
         search_results = self._browser.find_element(by=By.CSS_SELECTOR, value='a.link.place-list__item-name')
-        self._url = search_results.get_attribute('href')
-        return search_results.text
+        url = search_results.get_attribute('href')
+        return search_results.text, url
 
 
-    def get_forecast(self):
+    def get_forecast(self, url):
         result = {}
-        self._browser.get(self._url)
+        self._browser.get(url)
         self._browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
         time.sleep(2)
         forecast = self._browser.page_source
