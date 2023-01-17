@@ -39,6 +39,7 @@ class WeatherParser:
     def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/london'
         logger.info(location)
+        print(location)
         self._browser.get(default_url)
         search = self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input')
         search.send_keys(location + Keys.RETURN)
