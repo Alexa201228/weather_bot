@@ -16,7 +16,6 @@ load_dotenv()
 storage = MemoryStorage()
 bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
-parser = WeatherParser()
 
 
 class DialogStates(StatesGroup):
@@ -45,16 +44,15 @@ async def get_weather_location(message: types.Message, state: FSMContext):
     btn2 = types.KeyboardButton('Нет')
     markup.add(btn1, btn2)
     try:
+        parser = WeatherParser()
         loc = parser.check_location(message.text)
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
         await state.update_data(location=loc[0], url=loc[1])
         await DialogStates.location_verification.set()
-
     except:
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
-        await DialogStates.dialog_started.set()
 
 
 @dp.message_handler(state=DialogStates.location_verification)
@@ -63,13 +61,14 @@ async def verify_location(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     if message.text == 'Да':
         try:
+            parser = WeatherParser()
             forecast = parser.get_forecast(user_data['url'])
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
             await get_forecast_option(message)
         except:
             await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
-            await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start')
+            await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
 
     else:
         await bot.send_message(message.from_user.id,
@@ -114,7 +113,7 @@ async def print_forecast(message: types.Message, state: FSMContext):
     await bot.send_message(message.from_user.id, answer, reply_markup=remove_buttons)
     await bot.send_message(message.from_user.id,
                            'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
-    await state.finish()
+    await state.reset_state()
 
 
 if __name__ == '__main__':

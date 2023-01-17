@@ -1,7 +1,6 @@
 """
 Parser to get weather forecast from Yandex.Weather
 """
-import logging
 import time
 
 from bs4 import BeautifulSoup
@@ -22,8 +21,6 @@ EMOJI_WEATHER_DICT = {
     'Снег': '🌨'
 }
 
-logger = logging.getLogger(__name__)
-
 
 class WeatherParser:
 
@@ -37,9 +34,7 @@ class WeatherParser:
                                          options=options)
 
     def check_location(self, location: str):
-        default_url = 'https://dzen.ru/pogoda/london'
-        logger.info(location)
-        print(location)
+        default_url = 'https://dzen.ru/pogoda/'
         self._browser.get(default_url)
         search = self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input')
         search.send_keys(location + Keys.RETURN)
@@ -47,12 +42,11 @@ class WeatherParser:
         url = search_results.get_attribute('href')
         return search_results.text, url
 
-
     def get_forecast(self, url):
         result = {}
         self._browser.get(url)
         self._browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-        time.sleep(2)
+        time.sleep(4)
         forecast = self._browser.page_source
         soup = BeautifulSoup(forecast, 'lxml')
         five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:5]
