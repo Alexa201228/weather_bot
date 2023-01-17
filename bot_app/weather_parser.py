@@ -63,7 +63,7 @@ class WeatherParser:
                 wind_speed: str = detail.find('span', {'class': 'wind-speed'}).text
                 wind_direction: str = detail.find('div', {'class': 'weather-table__wind-direction'}).text
                 result[date_description][temperature[:temperature.index(',')].title()] = f"🌡 {temperature[temperature.index(',') + 2:]},\n" \
-                                                                                         f"{condition} {EMOJI_WEATHER_DICT.get(condition)},\n" \
+                                                                                         f"{condition} {EMOJI_WEATHER_DICT.get(condition, '')},\n" \
                                                                                          f"Давление: {pressure} мм рт. ст.,\n" \
                                                                                          f"Влажность 💦: {humidity},\n" \
                                                                                          f"Ветер 🌬: {wind_speed} м/с {wind_direction}"

@@ -8,4 +8,4 @@ services:
         container_name: "weather-telegram-bot"
         restart: always
         env_file:
-          - .env
+          - bot_app/.env
