@@ -91,7 +91,6 @@ async def print_forecast(message: types.Message, state: FSMContext):
         date = list(user_data['forecast'])[0]
     else:
         date = list(user_data['forecast'])[1]
-
     daytimes = list(user_data['forecast'][date])
     answer = f"""
         {user_data['forecast']['city']}
