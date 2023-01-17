@@ -62,10 +62,15 @@ async def verify_location(message: types.Message, state: FSMContext):
     remove_buttons = types.ReplyKeyboardRemove()
     user_data = await state.get_data()
     if message.text == 'Да':
-        forecast = parser.get_forecast(user_data['url'])
-        await state.update_data(forecast=forecast)
-        await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
-        await get_forecast_option(message)
+        try:
+            forecast = parser.get_forecast(user_data['url'])
+            await state.update_data(forecast=forecast)
+            await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
+            await get_forecast_option(message)
+        except:
+            await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
+            await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start')
+
     else:
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"', reply_markup=remove_buttons)
