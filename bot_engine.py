@@ -47,7 +47,7 @@ async def get_weather_location(message: types.Message, state: FSMContext):
     try:
         loc = parser.check_location(message.text)
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
-        await state.update_data(location=loc[0], url=loc[1])
+        #await state.update_data(location=loc[0], url=loc[1])
         await DialogStates.location_verification.set()
 
     except:
