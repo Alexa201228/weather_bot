@@ -54,6 +54,7 @@ async def get_weather_location(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
+        await DialogStates.dialog_started.set()
 
 
 @dp.message_handler(state=DialogStates.location_verification)
