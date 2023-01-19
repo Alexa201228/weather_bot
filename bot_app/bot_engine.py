@@ -1,13 +1,20 @@
 """
 Main bot module. Includes bot start and notifications functionality.
 """
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.utils.exceptions import MessageError, PollError
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from selenium.common.exceptions import (NoSuchElementException,
+                                        NoSuchAttributeException,
+                                        TimeoutException,
+                                        InvalidArgumentException)
 
 from weather_parser import WeatherParser
 
@@ -17,6 +24,21 @@ storage = MemoryStorage()
 bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
 
+logger = logging.getLogger(__name__)
+rfh = RotatingFileHandler(
+    filename=logging.getLogger(__name__).name,
+    maxBytes=1024,
+    backupCount=1,
+    delay=False,
+)
+
+logging.basicConfig(
+    format="%(asctime)s %(name) %(levelname) %(message)s",
+    datefmt="%y-%m-%d %H:%M:%S",
+    handlers=[
+        rfh
+    ]
+)
 
 class DialogStates(StatesGroup):
     location_verification = State()
@@ -24,7 +46,7 @@ class DialogStates(StatesGroup):
     dialog_started = State()
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(commands=['start'], state='*')
 async def start(message: types.Message):
     """
     Bot initialization
@@ -49,7 +71,10 @@ async def get_weather_location(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
         await state.update_data(location=loc[0], url=loc[1])
         await DialogStates.location_verification.set()
-    except:
+    except (MessageError, PollError, InvalidArgumentException,
+            TimeoutException, NoSuchElementException, NoSuchAttributeException,
+            Exception) as e:
+        logger.error(e)
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
@@ -66,7 +91,10 @@ async def verify_location(message: types.Message, state: FSMContext):
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
             await get_forecast_option(message)
-        except:
+        except (MessageError, PollError, InvalidArgumentException,
+                TimeoutException, NoSuchElementException, NoSuchAttributeException,
+                Exception) as e:
+            logger.error(e)
             await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
             await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
 
@@ -114,11 +142,15 @@ async def print_forecast(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, answer, reply_markup=remove_buttons)
         await bot.send_message(message.from_user.id,
                                'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
-    except:
+    except (MessageError, PollError, InvalidArgumentException,
+            TimeoutException, NoSuchElementException, NoSuchAttributeException,
+            Exception) as e:
+        logger.error(e)
         await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
         await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
     finally:
         await state.reset_state()
+        await state.reset_data()
 
 
 if __name__ == '__main__':
