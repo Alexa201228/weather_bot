@@ -24,9 +24,9 @@ storage = MemoryStorage()
 bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('bot_log.log')
 rfh = RotatingFileHandler(
-    filename=logging.getLogger(__name__).name,
+    filename='bot_log.log',
     maxBytes=1024,
     backupCount=1,
     delay=False,
@@ -155,7 +155,3 @@ async def print_forecast(message: types.Message, state: FSMContext):
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
-
-
-
-
