@@ -9,7 +9,9 @@ from selenium.webdriver import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support import expected_conditions as ec
 
 EMOJI_WEATHER_DICT = {
     'Ясно': '☀',
@@ -36,7 +38,7 @@ class WeatherParser:
     def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/'
         self._browser.get(default_url)
-        search = self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input')
+        search = WebDriverWait(self._browser, 3).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input'))
         search.send_keys(location + Keys.RETURN)
         search_results = self._browser.find_element(by=By.CSS_SELECTOR, value='a.link.place-list__item-name')
         url = search_results.get_attribute('href')
@@ -46,10 +48,11 @@ class WeatherParser:
         result = {}
         self._browser.get(url)
         self._browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-        time.sleep(4)
+        WebDriverWait(self._browser, 3).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR,
+                                                                                   value='div.forecast-details__day-info'))
         forecast = self._browser.page_source
         soup = BeautifulSoup(forecast, 'lxml')
-        five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:5]
+        five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:2]
         for day in five_days:
             details = day.find_all('tr', {'class': 'weather-table__row'})
             date = day.find_previous_sibling('div', {'class': 'forecast-details__day'})

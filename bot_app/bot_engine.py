@@ -91,29 +91,34 @@ async def get_forecast_option(message: types.Message):
 async def print_forecast(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     remove_buttons = types.ReplyKeyboardRemove()
-    if message.text == 'Погода на сегодня':
-        date = list(user_data['forecast'])[0]
-    else:
-        date = list(user_data['forecast'])[1]
-    daytimes = list(user_data['forecast'][date])
-    answer = f"""
-        {user_data['forecast']['city']}
+    try:
+        if message.text == 'Погода на сегодня':
+            date = list(user_data['forecast'])[0]
+        else:
+            date = list(user_data['forecast'])[1]
+        daytimes = list(user_data['forecast'][date])
+        answer = f"""
+            {user_data['forecast']['city']}
+    
+            {date}
+    
+            {daytimes[0]}: \n{user_data['forecast'][date][daytimes[0]]}
+    
+            {daytimes[1]}: \n{user_data['forecast'][date][daytimes[1]]}
+    
+            {daytimes[2]}: \n{user_data['forecast'][date][daytimes[2]]}
+    
+            {daytimes[3]}: \n{user_data['forecast'][date][daytimes[3]]}
+            """
 
-        {date}
-
-        {daytimes[0]}: \n{user_data['forecast'][date][daytimes[0]]}
-
-        {daytimes[1]}: \n{user_data['forecast'][date][daytimes[1]]}
-
-        {daytimes[2]}: \n{user_data['forecast'][date][daytimes[2]]}
-
-        {daytimes[3]}: \n{user_data['forecast'][date][daytimes[3]]}
-        """
-
-    await bot.send_message(message.from_user.id, answer, reply_markup=remove_buttons)
-    await bot.send_message(message.from_user.id,
-                           'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
-    await state.reset_state()
+        await bot.send_message(message.from_user.id, answer, reply_markup=remove_buttons)
+        await bot.send_message(message.from_user.id,
+                               'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
+    except:
+        await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
+        await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
+    finally:
+        await state.reset_state()
 
 
 if __name__ == '__main__':
