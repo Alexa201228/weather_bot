@@ -1,3 +1,4 @@
 .idea/
 venv/
 bot_app/.env
+bot_app/bot_log.log

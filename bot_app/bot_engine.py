@@ -105,22 +105,23 @@ async def verify_location(message: types.Message, state: FSMContext):
 
 
 async def get_forecast_option(message: types.Message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    today = types.KeyboardButton(text='Погода на сегодня')
-    tomorrow = types.KeyboardButton(text='Погода на завтра')
-    markup.add(today, tomorrow)
+    markup = types.InlineKeyboardMarkup(resize_keyboard=True)
+    today = types.InlineKeyboardButton(text='Погода на сегодня', callback_data='0')
+    tomorrow = types.InlineKeyboardButton(text='Погода на завтра', callback_data='1')
+    markup.add(today)
+    markup.add(tomorrow)
     await bot.send_message(message.from_user.id,
                            'Выбери опцию получения прогноза погоды',
                            reply_markup=markup)
     await DialogStates.chosen_option.set()
 
 
-@dp.message_handler(state=DialogStates.chosen_option)
-async def print_forecast(message: types.Message, state: FSMContext):
+@dp.callback_query_handler(lambda call: call.data == "0" or call.data == "1", state=DialogStates.chosen_option)
+async def print_forecast(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     remove_buttons = types.ReplyKeyboardRemove()
     try:
-        if message.text == 'Погода на сегодня':
+        if callback.message.text == 'Погода на сегодня':
             date = list(user_data['forecast'])[0]
         else:
             date = list(user_data['forecast'])[1]
@@ -139,18 +140,17 @@ async def print_forecast(message: types.Message, state: FSMContext):
             {daytimes[3]}: \n{user_data['forecast'][date][daytimes[3]]}
             """
 
-        await bot.send_message(message.from_user.id, answer, reply_markup=remove_buttons)
-        await bot.send_message(message.from_user.id,
+        await bot.send_message(callback.from_user.id, answer, reply_markup=remove_buttons)
+        await bot.send_message(callback.from_user.id,
                                'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
     except (MessageError, PollError, InvalidArgumentException,
             TimeoutException, NoSuchElementException, NoSuchAttributeException,
             Exception) as e:
         logger.error(e)
-        await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
-        await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
+        await bot.send_message(callback.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
+        await bot.send_message(callback.from_user.id, 'Пожалуйста, нажмите на /start')
     finally:
-        await state.reset_state()
-        await state.reset_data()
+        await state.finish()
 
 
 if __name__ == '__main__':
