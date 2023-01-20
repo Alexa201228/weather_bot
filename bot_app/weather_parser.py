@@ -38,7 +38,7 @@ class WeatherParser:
     def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/'
         self._browser.get(default_url)
-        search = WebDriverWait(self._browser, 3).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input'))
+        search = WebDriverWait(self._browser, 5).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR, value='input.mini-suggest-form__input.mini-suggest__input'))
         search.send_keys(location + Keys.RETURN)
         search_results = self._browser.find_element(by=By.CSS_SELECTOR, value='a.link.place-list__item-name')
         url = search_results.get_attribute('href')
@@ -48,7 +48,7 @@ class WeatherParser:
         result = {}
         self._browser.get(url)
         self._browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-        WebDriverWait(self._browser, 3).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR,
+        WebDriverWait(self._browser, 5).until(lambda _: self._browser.find_element(by=By.CSS_SELECTOR,
                                                                                    value='div.forecast-details__day-info'))
         forecast = self._browser.page_source
         soup = BeautifulSoup(forecast, 'lxml')
