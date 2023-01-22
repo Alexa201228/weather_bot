@@ -24,7 +24,7 @@ storage = MemoryStorage()
 bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
 
-logger = logging.getLogger('bot_log.log')
+logger = logging.getLogger('bot_log')
 rfh = RotatingFileHandler(
     filename='bot_log.log',
     maxBytes=1024,
@@ -75,6 +75,7 @@ async def get_weather_location(message: types.Message, state: FSMContext):
             TimeoutException, NoSuchElementException, NoSuchAttributeException,
             Exception) as e:
         logger.error(e)
+        logger.log(logging.ERROR, str(e))
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
@@ -95,6 +96,7 @@ async def verify_location(message: types.Message, state: FSMContext):
                 TimeoutException, NoSuchElementException, NoSuchAttributeException,
                 Exception) as e:
             logger.error(e)
+            logger.log(logging.ERROR, str(e))
             await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
             await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
 
@@ -121,7 +123,7 @@ async def print_forecast(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     remove_buttons = types.ReplyKeyboardRemove()
     try:
-        if callback.message.text == 'Погода на сегодня':
+        if callback.data == '0':
             date = list(user_data['forecast'])[0]
         else:
             date = list(user_data['forecast'])[1]
@@ -147,6 +149,7 @@ async def print_forecast(callback: types.CallbackQuery, state: FSMContext):
             TimeoutException, NoSuchElementException, NoSuchAttributeException,
             Exception) as e:
         logger.error(e)
+        logger.log(logging.ERROR, str(e))
         await bot.send_message(callback.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
         await bot.send_message(callback.from_user.id, 'Пожалуйста, нажмите на /start')
     finally:
