@@ -11,11 +11,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.exceptions import MessageError, PollError
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from selenium.common.exceptions import (NoSuchElementException,
-                                        NoSuchAttributeException,
-                                        TimeoutException,
-                                        InvalidArgumentException)
-
+from arsenic.errors import ArsenicTimeout, ArsenicError
 from weather_parser import WeatherParser
 
 load_dotenv()
@@ -71,9 +67,8 @@ async def get_weather_location(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
         await state.update_data(location=loc[0], url=loc[1])
         await DialogStates.location_verification.set()
-    except (MessageError, PollError, InvalidArgumentException,
-            TimeoutException, NoSuchElementException, NoSuchAttributeException,
-            Exception) as e:
+    except (MessageError, PollError, ArsenicTimeout,
+            ArsenicError, Exception) as e:
         logger.error(e)
         logger.log(logging.ERROR, str(e))
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
@@ -92,9 +87,8 @@ async def verify_location(message: types.Message, state: FSMContext):
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
             await get_forecast_option(message)
-        except (MessageError, PollError, InvalidArgumentException,
-                TimeoutException, NoSuchElementException, NoSuchAttributeException,
-                Exception) as e:
+        except (MessageError, PollError, ArsenicTimeout,
+                ArsenicError, Exception) as e:
             logger.error(e)
             logger.log(logging.ERROR, str(e))
             await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
@@ -145,9 +139,8 @@ async def print_forecast(callback: types.CallbackQuery, state: FSMContext):
         await bot.send_message(callback.from_user.id, answer, reply_markup=remove_buttons)
         await bot.send_message(callback.from_user.id,
                                'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
-    except (MessageError, PollError, InvalidArgumentException,
-            TimeoutException, NoSuchElementException, NoSuchAttributeException,
-            Exception) as e:
+    except (MessageError, PollError, ArsenicTimeout,
+            ArsenicError, Exception) as e:
         logger.error(e)
         logger.log(logging.ERROR, str(e))
         await bot.send_message(callback.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
