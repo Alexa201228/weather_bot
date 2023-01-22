@@ -67,7 +67,7 @@ async def get_weather_location(message: types.Message, state: FSMContext):
     markup.add(btn1, btn2)
     try:
         parser = WeatherParser()
-        loc = parser.check_location(message.text)
+        loc = await parser.check_location(message.text)
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
         await state.update_data(location=loc[0], url=loc[1])
         await DialogStates.location_verification.set()
@@ -88,7 +88,7 @@ async def verify_location(message: types.Message, state: FSMContext):
     if message.text == 'Да':
         try:
             parser = WeatherParser()
-            forecast = parser.get_forecast(user_data['url'])
+            forecast = await parser.get_forecast(user_data['url'])
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
             await get_forecast_option(message)
