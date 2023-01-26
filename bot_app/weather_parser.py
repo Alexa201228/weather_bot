@@ -4,7 +4,7 @@ Parser to get weather forecast from Yandex.Weather
 
 from bs4 import BeautifulSoup
 
-from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 from arsenic import get_session, keys, browsers, services
 
 EMOJI_WEATHER_DICT = {
@@ -21,21 +21,21 @@ EMOJI_WEATHER_DICT = {
 class WeatherParser:
 
     def __init__(self) -> None:
-        t = ChromeDriverManager().install()
-        self._service = services.Chromedriver(binary=t)
-        self._browser = browsers.Chrome()
+        t = GeckoDriverManager().install()
+        self._service = services.Geckodriver(binary=t)
+        self._browser = browsers.Firefox()
         self._browser.capabilities = {
-            "goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]}
+            'moz:firefoxOptions': {"args": ["--headless", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]}
         }
 
     async def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/'
         async with get_session(self._service, self._browser) as session:
             await session.get(default_url)
-            search = await session.wait_for_element(5, 'input.mini-suggest-form__input.mini-suggest__input')
+            search = await session.wait_for_element(10, 'input.mini-suggest-form__input.mini-suggest__input')
             await search.send_keys(location)
             await search.send_keys(keys.ENTER)
-            search_results = await session.wait_for_element(5, 'a.link.place-list__item-name')
+            search_results = await session.wait_for_element(10, 'a.link.place-list__item-name')
             url = await search_results.get_attribute('href')
             text = await search_results.get_text()
             return text, f'https://dzen.ru{url}'
@@ -45,7 +45,7 @@ class WeatherParser:
         async with get_session(self._service, self._browser) as session:
             await session.get(url)
             await session.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-            await session.wait_for_element(5, 'div.forecast-details__day-info')
+            await session.wait_for_element(10, 'div.forecast-details__day-info')
             forecast = await session.get_page_source()
             soup = BeautifulSoup(forecast, 'lxml')
             five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:2]

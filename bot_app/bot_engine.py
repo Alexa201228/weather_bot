@@ -65,7 +65,7 @@ async def get_weather_location(message: types.Message, state: FSMContext):
         parser = WeatherParser()
         loc = await parser.check_location(message.text)
         await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
-        await state.update_data(location=loc[0], url=loc[1])
+        await state.update_data(location=loc[0], url=loc[1], parser=parser)
         await DialogStates.location_verification.set()
     except (MessageError, PollError, ArsenicTimeout,
             ArsenicError, Exception) as e:
@@ -82,7 +82,7 @@ async def verify_location(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     if message.text == 'Да':
         try:
-            parser = WeatherParser()
+            parser = user_data['parser']
             forecast = await parser.get_forecast(user_data['url'])
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
