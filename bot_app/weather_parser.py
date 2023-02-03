@@ -25,7 +25,7 @@ class WeatherParser:
         self._service = services.Chromedriver(binary=t)
         self._browser = browsers.Chrome()
         self._browser.capabilities = {
-            "goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox"]}
+            "goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]}
         }
 
     async def check_location(self, location: str):
