@@ -23,9 +23,10 @@ class WeatherParser:
     def __init__(self) -> None:
         t = ChromeDriverManager().install()
         self._service = services.Chromedriver(binary=t)
-        self._browser = browsers.Chrome(chromeOptions={
-            'args': ['--headless', '--disable-gpu', "--no-sandbox"]
-        })
+        self._browser = browsers.Chrome()
+        self._browser.capabilities = {
+            "goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox"]}
+        }
 
     async def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/'
