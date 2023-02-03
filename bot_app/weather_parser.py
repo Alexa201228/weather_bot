@@ -29,9 +29,7 @@ class WeatherParser:
             '--disable-gpu',
             '--no-sandbox',
             '--disable-dev-shm-usage'
-            '--disable-extensions',
-            '--disable-blink-features',
-            '--disable-blink-features=AutomationControlled',
+            '--disable-extensions'
         ]
         self._browser.capabilities = {
             "goog:chromeOptions": {"args": options}
