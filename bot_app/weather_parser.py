@@ -56,7 +56,7 @@ class WeatherParser:
             await session.wait_for_element(15, 'div.forecast-details__day-info')
             forecast = await session.get_page_source()
             soup = BeautifulSoup(forecast, 'lxml')
-            five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:2]
+            five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:5]
             for day in five_days:
                 details = day.find_all('tr', {'class': 'weather-table__row'})
                 date = day.find_previous_sibling('div', {'class': 'forecast-details__day'})
