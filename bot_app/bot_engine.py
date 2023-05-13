@@ -196,7 +196,8 @@ async def get_forecast_details(forecast_dict: dict, data: str) -> str:
     """
     answer = ""
     for daytime, forecast_info in forecast_dict['forecast'][data].items():
-        info = forecast_info.split('\n')[:2]
+        temp = forecast_info.split('\n')
+        info = temp[:2] + [temp[-1]]
         answer += f"""
                    {daytime}: {" ".join(info)}
                    """
