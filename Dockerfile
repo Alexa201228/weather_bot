@@ -12,7 +12,7 @@ RUN apt-get install -yqq unzip
 
 # Get the latest version of ChromeDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` \
-    && wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
+    && wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chrome-linux64.zip \
     && unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/ \
     && chmod +x /usr/local/bin/chromedriver
 
