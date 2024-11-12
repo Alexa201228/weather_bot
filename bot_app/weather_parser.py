@@ -5,7 +5,7 @@ Parser to get weather forecast from Yandex.Weather
 from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 
-from arsenic import get_session, keys, browsers, services
+from arsenic import get_session, keys, browsers
 
 EMOJI_WEATHER_DICT = {
     'Ясно': '☀',
@@ -21,8 +21,10 @@ EMOJI_WEATHER_DICT = {
 class WeatherParser:
 
     def __init__(self) -> None:
-        t = ChromeDriverManager().install()
-        self._service = services.Chromedriver(binary=t)
+        service = 
+
+    options = webdriver.ChromeOptions()
+        self._service = Service(ChromeDriverManager().install())
         self._browser = browsers.Chrome()
 
         self._browser.capabilities = {
