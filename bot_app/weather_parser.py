@@ -21,9 +21,6 @@ EMOJI_WEATHER_DICT = {
 class WeatherParser:
 
     def __init__(self) -> None:
-        service = 
-
-    options = webdriver.ChromeOptions()
         self._service = Service(ChromeDriverManager().install())
         self._browser = browsers.Chrome()
 
