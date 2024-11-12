@@ -2,19 +2,24 @@ FROM python:3.9
 
 ENV PYTHONUNBUFFERED 1
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
-    && apt-get -y update \
-    && apt-get install -y google-chrome-stable
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y wget unzip && \
+    apt-get clean
 
-# Install unzip for ChromeDriver
-RUN apt-get install -yqq unzip
+# Download Google Chrome from the specified URL
+RUN wget -q --continue -P /tmp https://storage.googleapis.com/chrome-for-testing-public/GoogleChrome-stable_current_amd64.deb && \
+    dpkg -i /tmp/GoogleChrome-stable_current_amd64.deb || apt-get -y install -f
 
-# Get the latest version of ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` \
-    && wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chromedriver-linux64.zip \
-    && unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/ \
-    && chmod +x /usr/local/bin/chromedriver
+# Get the installed version of Google Chrome
+RUN CHROME_VERSION=$(google-chrome --product-version | cut -d '.' -f 1-3) && \
+    echo "Chrome Version: $CHROME_VERSION"
+
+# Download ChromeDriver from the specified URL
+RUN CHROMEDRIVER_VERSION=$(curl -s "https://storage.googleapis.com/chrome-for-testing-public/LATEST_RELEASE_$CHROME_VERSION") && \
+    wget -q --continue -P /tmp "https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chromedriver-linux64.zip" && \
+    unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
+    chmod +x /usr/local/bin/chromedriver
 
 # Set display port to avoid crashes
 ENV DISPLAY=:99
