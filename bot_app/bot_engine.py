@@ -29,7 +29,7 @@ rfh = RotatingFileHandler(
 )
 
 logging.basicConfig(
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",  # Fixed here
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Fixed here
     datefmt="%y-%m-%d %H:%M:%S",
     handlers=[
         rfh
