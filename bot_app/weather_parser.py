@@ -3,6 +3,7 @@ Parser to get weather forecast from Yandex.Weather
 """
 
 from bs4 import BeautifulSoup
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 from arsenic import get_session, keys, browsers
