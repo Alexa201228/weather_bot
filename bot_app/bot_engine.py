@@ -21,19 +21,11 @@ bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
 
 logger = logging.getLogger('bot_log')
-rfh = RotatingFileHandler(
-    filename='bot_log.log',
-    maxBytes=1024,
-    backupCount=1,
-    delay=False,
-)
+
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Fixed here
     datefmt="%y-%m-%d %H:%M:%S",
-    handlers=[
-        rfh
-    ]
 )
 
 
