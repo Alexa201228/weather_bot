@@ -1,25 +1,28 @@
 FROM python:3.9
 
 ENV PYTHONUNBUFFERED 1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y wget unzip && \
+    apt-get install -y wget curl unzip && \
     apt-get clean
 
-# Download Google Chrome from the specified URL
+# Download and install Google Chrome
 RUN wget -q --continue -P /tmp https://storage.googleapis.com/chrome-for-testing-public/GoogleChrome-stable_current_amd64.deb && \
-    dpkg -i /tmp/GoogleChrome-stable_current_amd64.deb || apt-get -y install -f
+    dpkg -i /tmp/GoogleChrome-stable_current_amd64.deb || apt-get -y install -f && \
+    rm /tmp/GoogleChrome-stable_current_amd64.deb
 
 # Get the installed version of Google Chrome
 RUN CHROME_VERSION=$(google-chrome --product-version | cut -d '.' -f 1-3) && \
     echo "Chrome Version: $CHROME_VERSION"
 
-# Download ChromeDriver from the specified URL
+# Download and install ChromeDriver
 RUN CHROMEDRIVER_VERSION=$(curl -s "https://storage.googleapis.com/chrome-for-testing-public/LATEST_RELEASE_$CHROME_VERSION") && \
     wget -q --continue -P /tmp "https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVER_VERSION/linux64/chromedriver-linux64.zip" && \
     unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
-    chmod +x /usr/local/bin/chromedriver
+    chmod +x /usr/local/bin/chromedriver && \
+    rm /tmp/chromedriver-linux64.zip
 
 # Set display port to avoid crashes
 ENV DISPLAY=:99
