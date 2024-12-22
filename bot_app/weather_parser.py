@@ -54,27 +54,13 @@ class WeatherParser:
                 context = await browser.new_context()
                 page = await context.new_page()
                 await page.goto(url)
-                previous_height = await page.evaluate("document.body.scrollHeight")
-                while True:
-                    # Scroll to the bottom of the page
-                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    # Wait for new content to load
-                    await page.wait_for_timeout(200)  # Adjust timeout as needed
-                    
-                    # Get the current height of the page
-                    current_height = await page.evaluate("document.body.scrollHeight")
-                    
-                    # If the height hasn't changed, we're at the bottom of the page
-                    if current_height == previous_height:
-                        break  # Exit the loop if no new content is loaded
-                    
-                    # Update previous height and collect new elements
-                    previous_height = current_height
-                    
+
+                # Scroll to the bottom of the page
+                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                 await page.wait_for_selector('article', state='attached')  # Wait until at least one element is attached to the DOM
 
                 # You can wait for all matching elements (if there are multiple)
-                await page.locator('article',).all()
+                await page.locator('article').all()
                 forecast = await page.content()
                 await browser.close()
             soup = BeautifulSoup(forecast, 'html.parser')
