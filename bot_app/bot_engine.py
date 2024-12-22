@@ -11,7 +11,6 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.exceptions import MessageError, PollError
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from arsenic.errors import ArsenicTimeout, ArsenicError
 from weather_parser import WeatherParser
 
 load_dotenv()
@@ -20,12 +19,9 @@ storage = MemoryStorage()
 bot = Bot(os.getenv('BOT_TOKEN'))
 dp = Dispatcher(bot, storage=storage)
 
-logger = logging.getLogger('bot_log')
-
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Fixed here
-    datefmt="%y-%m-%d %H:%M:%S",
+    level=logging.INFO
 )
 
 
@@ -56,14 +52,12 @@ async def get_weather_location(message: types.Message, state: FSMContext):
     markup.add(btn1, btn2)
     try:
         parser = WeatherParser()
-        loc = await parser.check_location(message.text)
-        await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc[0]}?', reply_markup=markup)
-        await state.update_data(location=loc[0], url=loc[1])
+        loc, url = await parser.check_location(message.text)
+        await bot.send_message(message.from_user.id, f'Ваш населенный пункт {loc}?', reply_markup=markup)
+        await state.update_data(location=loc, url=url)
         await DialogStates.location_verification.set()
-    except (MessageError, PollError, ArsenicTimeout,
-            ArsenicError, Exception) as e:
-        logger.error(e)
-        logger.log(logging.ERROR, str(e))
+    except (MessageError, PollError, Exception) as e:
+        logging.error(e)
         await bot.send_message(message.from_user.id, 'Извините, не нашли такого населенного пункта 🙁')
         await bot.send_message(message.from_user.id,
                          'Напиши город для поиска прогноза, например "Лондон" или "Комсомольск-на-Амуре"')
@@ -80,10 +74,8 @@ async def verify_location(message: types.Message, state: FSMContext):
             await state.update_data(forecast=forecast)
             await bot.send_message(message.from_user.id, 'Отлично!', reply_markup=remove_buttons)
             await get_forecast_option(message)
-        except (MessageError, PollError, ArsenicTimeout,
-                ArsenicError, Exception) as e:
-            logger.error(e)
-            logger.log(logging.ERROR, str(e))
+        except (MessageError, PollError,Exception) as e:
+            logging.error(e)
             await bot.send_message(message.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
             await bot.send_message(message.from_user.id, 'Пожалуйста, нажмите на /start', reply_markup=remove_buttons)
 
@@ -121,10 +113,8 @@ async def print_forecast(callback: types.CallbackQuery, state: FSMContext):
         await bot.send_message(callback.from_user.id, answer, reply_markup=remove_buttons)
         await bot.send_message(callback.from_user.id,
                                'Если хотитите получить прогноз погоды в другом городе, нажмите /start')
-    except (MessageError, PollError, ArsenicTimeout,
-            ArsenicError, Exception) as e:
-        logger.error(e)
-        logger.log(logging.ERROR, str(e))
+    except (MessageError, PollError,  Exception) as e:
+        logging.error(e)
         await bot.send_message(callback.from_user.id, 'Извините, не получилось загрузить прогноз погоды 😟')
         await bot.send_message(callback.from_user.id, 'Пожалуйста, нажмите на /start')
     finally:

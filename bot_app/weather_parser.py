@@ -2,11 +2,14 @@
 Parser to get weather forecast from Yandex.Weather
 """
 
+import logging
+import re
 from bs4 import BeautifulSoup
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from playwright.async_api import async_playwright
 
-from arsenic import get_session, keys, browsers
+logging.basicConfig(
+    level=logging.INFO
+)
 
 EMOJI_WEATHER_DICT = {
     'Ясно': '☀',
@@ -22,44 +25,66 @@ EMOJI_WEATHER_DICT = {
 class WeatherParser:
 
     def __init__(self) -> None:
-        self._service = Service(ChromeDriverManager().install())
-        self._browser = browsers.Chrome()
-
-        self._browser.capabilities = {
-            "goog:chromeOptions": {"args": [
-                '--headless',
-                '--no-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--window-size=1920,1080',
-            ]
-            }
-        }
+        pass
 
     async def check_location(self, location: str):
         default_url = 'https://dzen.ru/pogoda/'
-        async with get_session(self._service, self._browser) as session:
-            await session.get(default_url)
-            search = await session.wait_for_element(15, 'input.mini-suggest-form__input.mini-suggest__input')
-            await search.send_keys(location)
-            await search.send_keys(keys.ENTER)
-            search_results = await session.wait_for_element(15, 'a.link.place-list__item-name')
-            url = await search_results.get_attribute('href')
-            text = await search_results.get_text()
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)  # Set headless=True to run in background
+            context = await browser.new_context()
+            page = await context.new_page()
+            await page.goto(default_url)
+            input_class = "input.mini-suggest-form__input.mini-suggest__input"
+            await page.wait_for_selector(input_class)
+            await page.fill(input_class, location)
+            await page.press(input_class, "Enter")
+            found_location = "a.link.place-list__item-name"
+            await page.wait_for_selector(found_location)
+            url = await page.get_attribute(found_location, 'href')
+            text = await page.inner_text(found_location)
+            logging.info(f"{url}, {text}")
+            await browser.close()
             return text, f'https://dzen.ru{url}'
 
     async def get_forecast(self, url):
         result = {}
-        async with get_session(self._service, self._browser) as session:
-            await session.get(url)
-            await session.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-            await session.wait_for_element(15, 'div.forecast-details__day-info')
-            forecast = await session.get_page_source()
-            soup = BeautifulSoup(forecast, 'lxml')
-            five_days = soup.find_all('div', {'class': 'forecast-details__day-info'})[:5]
-            for day in five_days:
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)  # Set headless=True to run in background
+                context = await browser.new_context()
+                page = await context.new_page()
+                await page.goto(url)
+                previous_height = await page.evaluate("document.body.scrollHeight")
+                while True:
+                    # Scroll to the bottom of the page
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    # Wait for new content to load
+                    await page.wait_for_timeout(200)  # Adjust timeout as needed
+                    
+                    # Get the current height of the page
+                    current_height = await page.evaluate("document.body.scrollHeight")
+                    
+                    # If the height hasn't changed, we're at the bottom of the page
+                    if current_height == previous_height:
+                        break  # Exit the loop if no new content is loaded
+                    
+                    # Update previous height and collect new elements
+                    previous_height = current_height
+                    
+                await page.wait_for_selector('article', state='attached')  # Wait until at least one element is attached to the DOM
+
+                # You can wait for all matching elements (if there are multiple)
+                await page.locator('article',).all()
+                forecast = await page.content()
+                await browser.close()
+            soup = BeautifulSoup(forecast, 'html.parser')
+            five_days = soup.find_all("article", {'class': 'card'})[:5]
+            filtered_segment_containers = [
+                container for container in five_days if not 'card_without-card-decoration' in container.get('class', [])
+]
+            for day in filtered_segment_containers:
                 details = day.find_all('tr', {'class': 'weather-table__row'})
-                date = day.find_previous_sibling('div', {'class': 'forecast-details__day'})
+                date = day.find_all('h2', {'class': 'forecast-details__title'})[0]
                 date_description = date.find('div', {'class': 'a11y-hidden'}).text
                 result[date_description] = {}
                 for detail in details:
@@ -83,3 +108,7 @@ class WeatherParser:
             city = soup.find('h1', {'class': 'title title_level_1 header-title__title'}).text
             result['city'] = city
             return result
+
+        except Exception as e:
+            logging.error(e)
+            raise e
